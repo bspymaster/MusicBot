@@ -853,11 +853,6 @@ class MusicBot(discord.Client):
         """
 
         song_url = song_url.strip('<>')
-        
-        #auto-add to autoplaylist.txt
-        #poorly hard-coded at the moment, take a look at config.py for a better solution in the future
-        with open("../config/autoplaylist.txt","a") as autoplaylistFile:
-            autoplaylistFile.write("{0}\n".format(song_url))
 
         if permissions.max_songs and player.playlist.count_for_user(author) >= permissions.max_songs:
             raise exceptions.PermissionsError(
@@ -905,6 +900,16 @@ class MusicBot(discord.Client):
             info = await self.downloader.extract_info(player.playlist.loop, song_url, download=False, process=False)
             # Now I could just do: return await self.cmd_play(player, channel, author, song_url)
             # But this is probably fine
+            
+            #auto-add to autoplaylist.txt (aafter finding the URL)
+            #poorly hard-coded at the moment, take a look at config.py for a better solution in the future, requires a restart to affect the player and play the new file
+            with open("config/autoplaylist.txt","a") as autoplaylistFile:
+                autoplaylistFile.write("{0}\n".format(song_url))
+        else:
+            #auto-add to autoplaylist.txt (already a URL)
+            #poorly hard-coded at the moment, take a look at config.py for a better solution in the future, requires a restart to affect the player and play the new file
+            with open("config/autoplaylist.txt","a") as autoplaylistFile:
+                autoplaylistFile.write("{0}\n".format(song_url))
 
         # TODO: Possibly add another check here to see about things like the bandcamp issue
         # TODO: Where ytdl gets the generic extractor version with no processing, but finds two different urls
