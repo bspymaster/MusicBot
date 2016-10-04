@@ -77,6 +77,7 @@ class MusicBot(discord.Client):
 
         self.blacklist = set(load_file(self.config.blacklist_file))
         self.autoplaylist = load_file(self.config.auto_playlist_file)
+        self.errorplaylist = load_file(self.config.error_playlist_file)
         self.downloader = downloader.Downloader(download_folder='audio_cache')
 
         self.exit_signal = None
@@ -84,7 +85,13 @@ class MusicBot(discord.Client):
         self.cached_client_id = None
 
         if not self.autoplaylist:
-            print("Warning: Autoplaylist is empty, disabling.")
+            print("Warning: Autoplaylist is empty, injecting Errorplaylist.")
+            with open("config/errorplaylist.txt") as f:
+                with open("config/autoplaylist.txt", "w") as f1:
+                    for line in f:
+                        f1.write(line)
+                        open("config/errorplaylist.txt", "w").close()
+            print("Warning: Autoplaylist has not loaded due to injecting.")
             self.config.auto_playlist = False
 
         # TODO: Do these properly
@@ -421,6 +428,7 @@ class MusicBot(discord.Client):
 
                 if not info:
                     self.autoplaylist.remove(song_url)
+                    self.errorplaylist.add(song_url)
                     self.safe_print("[Info] Removing unplayable song from autoplaylist: %s" % song_url)
                     write_file(self.config.auto_playlist_file, self.autoplaylist)
                     continue
@@ -439,7 +447,12 @@ class MusicBot(discord.Client):
                 break
 
             if not self.autoplaylist:
-                print("[Warning] No playable songs in the autoplaylist, disabling.")
+                print("Warning: Autoplaylist is empty, injecting Errorplaylist.")
+                with open("config/errorplaylist.txt") as f:
+                    with open("config/autoplaylist.txt", "w") as f1:
+                        for line in f:
+                            f1.write(line)
+                print("Warning: Autoplaylist has not loaded due to injecting.")
                 self.config.auto_playlist = False
 
     async def on_player_entry_added(self, playlist, entry, **_):
@@ -547,6 +560,7 @@ class MusicBot(discord.Client):
 
     # noinspection PyMethodOverriding
     def run(self):
+
         try:
             self.loop.run_until_complete(self.start(*self.config.auth))
 
@@ -593,6 +607,7 @@ class MusicBot(discord.Client):
             vc.main_ws = self.ws
 
     async def on_ready(self):
+
         print('\rConnected!  Musicbot v%s\n' % BOTVERSION)
 
         if self.config.owner_id == self.user.id:
@@ -901,13 +916,13 @@ class MusicBot(discord.Client):
             # Now I could just do: return await self.cmd_play(player, channel, author, song_url)
             # But this is probably fine
             
-            #auto-add to autoplaylist.txt (aafter finding the URL)
-            #poorly hard-coded at the moment, take a look at config.py for a better solution in the future, requires a restart to affect the player and play the new file
+            #auto-add to autoplaylist.txt
+            #poorly hard-coded at the moment, take a look at config.py for a better solution in the future
             with open("config/autoplaylist.txt","a") as autoplaylistFile:
                 autoplaylistFile.write("{0}\n".format(song_url))
         else:
             #auto-add to autoplaylist.txt (already a URL)
-            #poorly hard-coded at the moment, take a look at config.py for a better solution in the future, requires a restart to affect the player and play the new file
+            #poorly hard-coded at the moment, take a look at config.py for a better solution in the future
             with open("config/autoplaylist.txt","a") as autoplaylistFile:
                 autoplaylistFile.write("{0}\n".format(song_url))
 
