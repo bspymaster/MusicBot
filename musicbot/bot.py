@@ -1004,11 +1004,6 @@ class MusicBot(discord.Client):
 
             try:
                 entry, position = await player.playlist.add_entry(song_url, channel=channel, author=author)
-                
-                #auto-add to autoplaylist.txt
-                #poorly hard-coded at the moment, take a look at config.py for a better solution in the future
-                with open("../config/autoplaylist.txt","a") as autoplay:
-                    autoplay.write(song_url)
 
             except exceptions.WrongEntryTypeError as e:
                 if e.use_url == song_url:
@@ -1036,6 +1031,11 @@ class MusicBot(discord.Client):
                 time_until = ''
 
             reply_text %= (btext, position, time_until)
+        
+        #auto-add to autoplaylist.txt
+        #poorly hard-coded at the moment, take a look at config.py for a better solution in the future
+        with open("../config/autoplaylist.txt","a") as autoplaylistFile:
+            autoplaylistFile.write("{0}\n".format(song_url))
 
         return Response(reply_text, delete_after=30)
 
