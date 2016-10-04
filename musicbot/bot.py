@@ -853,6 +853,11 @@ class MusicBot(discord.Client):
         """
 
         song_url = song_url.strip('<>')
+        
+        #auto-add to autoplaylist.txt
+        #poorly hard-coded at the moment, take a look at config.py for a better solution in the future
+        with open("../config/autoplaylist.txt","a") as autoplaylistFile:
+            autoplaylistFile.write("{0}\n".format(song_url))
 
         if permissions.max_songs and player.playlist.count_for_user(author) >= permissions.max_songs:
             raise exceptions.PermissionsError(
@@ -1031,11 +1036,6 @@ class MusicBot(discord.Client):
                 time_until = ''
 
             reply_text %= (btext, position, time_until)
-        
-        #auto-add to autoplaylist.txt
-        #poorly hard-coded at the moment, take a look at config.py for a better solution in the future
-        with open("../config/autoplaylist.txt","a") as autoplaylistFile:
-            autoplaylistFile.write("{0}\n".format(song_url))
 
         return Response(reply_text, delete_after=30)
 
